@@ -10,18 +10,25 @@
 
 'use strict';
 
-var spawn = require('cross-spawn');
-var script = process.argv[2];
-var args = process.argv.slice(3);
+const spawn = require('react-dev-utils/crossSpawn');
+const args = process.argv.slice(2);
+
+const scriptIndex = args.findIndex(
+  x => x === 'build' || x === 'eject' || x === 'start' || x === 'test'
+);
+const script = scriptIndex === -1 ? args[0] : args[scriptIndex];
+const nodeArgs = scriptIndex > 0 ? args.slice(0, scriptIndex) : [];
 
 switch (script) {
   case 'build':
   case 'eject':
   case 'start':
-  case 'test':
-    var result = spawn.sync(
+  case 'test': {
+    const result = spawn.sync(
       'node',
-      [require.resolve('../scripts/' + script)].concat(args),
+      nodeArgs
+        .concat(require.resolve('../scripts/' + script))
+        .concat(args.slice(scriptIndex + 1)),
       { stdio: 'inherit' }
     );
     if (result.signal) {
@@ -42,6 +49,7 @@ switch (script) {
     }
     process.exit(result.status);
     break;
+  }
   default:
     console.log('Unknown script "' + script + '".');
     console.log('Perhaps you need to update react-scripts?');

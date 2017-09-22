@@ -27,10 +27,9 @@ function isProcessAReactApp(processCommand) {
 }
 
 function getProcessIdOnPort(port) {
-  return execSync(
-    'lsof -i:' + port + ' -P -t -sTCP:LISTEN',
-    execOptions
-  ).trim();
+  return execSync('lsof -i:' + port + ' -P -t -sTCP:LISTEN', execOptions)
+    .split('\n')[0]
+    .trim();
 }
 
 function getPackageNameInDirectory(directory) {
@@ -49,9 +48,11 @@ function getProcessCommand(processId, processDirectory) {
     execOptions
   );
 
+  command = command.replace(/\n$/, '')
+
   if (isProcessAReactApp(command)) {
     const packageName = getPackageNameInDirectory(processDirectory);
-    return packageName ? packageName + '\n' : command;
+    return packageName ? packageName : command;
   } else {
     return command;
   }
@@ -69,7 +70,8 @@ function getProcessForPort(port) {
     var processId = getProcessIdOnPort(port);
     var directory = getDirectoryOfProcessById(processId);
     var command = getProcessCommand(processId, directory);
-    return chalk.cyan(command) + chalk.blue('  in ') + chalk.cyan(directory);
+    return chalk.cyan(command) + chalk.grey(' (pid ' + processId + ')\n') + 
+      chalk.blue('  in ') + chalk.cyan(directory);
   } catch (e) {
     return null;
   }
